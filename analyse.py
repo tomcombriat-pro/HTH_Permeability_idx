@@ -152,7 +152,8 @@ plt.clf()
 
 for i in range(len(res)):
     for j in range(len(res[i])):
-        plt.plot(times,res[i][j],label = "Im"+str(j)+"_ROI"+str(i))
+        if (res[i][j][0] !=0):
+            plt.plot(times,res[i][j],label = "Im"+str(j)+"_ROI"+str(i))
 plt.xlabel("Time")
 plt.legend()
 plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_glob.png")

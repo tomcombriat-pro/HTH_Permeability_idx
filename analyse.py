@@ -23,7 +23,12 @@ from scipy.ndimage import distance_transform_edt
 from skimage.morphology import disk
 
 import argparse
-from src.ROImaker import * 
+from src.ROImaker import *
+
+def find_time(st):
+    stt = int(os.path.basename(st).rsplit("_",maxsplit=1)[1][1::].split("min")[0])
+    return stt
+    
 
 
 parser = argparse.ArgumentParser(
@@ -40,16 +45,35 @@ args = parser.parse_args()
 
 
 
-img = nd2.imread(args.filename)
 
-print(img.shape)
+#### Find all other files
+folder = os.path.dirname(args.filename)
+ls = os.listdir(folder)
+basename= os.path.basename(args.filename).rsplit("_",maxsplit=1)[0]
+#print(basename,find_time(args.filename))
+ls_filtered = []
+times = []
+for i in ls:
+    if (basename in i and ".nd2" in i):
+        ls_filtered.append(i)
+        times.append(find_time(i))
+
+
+sorting = np.argsort(times)
+ls_filtered = np.array(ls_filtered)[sorting]
+times = np.array(times)[sorting]
+
+print(ls_filtered,times)
+
+
+img = nd2.imread(args.filename)
 
 med = median(img[0]>threshold_otsu(img[0]),disk(args.median_size))
 for i in range(args.median-1):
     med = median(med,disk(args.median_size))
 
 
-edt = make_rois(img[0],med,10,100,10)
+rois = make_rois(img[0],med,2,100,10)
 
 plt.figure()
 ax = plt.subplot(231)
@@ -63,7 +87,7 @@ meds = median(img[0]> threshold_otsu(img[0]))
 plt.imshow(med)
 
 plt.subplot(234,sharex=ax,sharey=ax)
-plt.imshow(edt)
+plt.imshow(rois)
 plt.colorbar()
 plt.subplot(235,sharex=ax,sharey=ax)
 #plt.imshow(conv)

@@ -42,7 +42,7 @@ parser.add_argument('filename')
 parser.add_argument('-m', '--median', type=int, default=4,help="Number of successive median filter to apply for initial finding")
 parser.add_argument('-ms', '--median_size', type=int, default=6,help="Size of the median filter")
 parser.add_argument('-n', '--n_roi', type=int, default=2,help="Number of rois per image")
-parser.add_argument('-m', '--max_iter', type=int,default=20,help="Max number of iterations to find correct ROIs")
+parser.add_argument('-mi', '--max_iter', type=int,default=20,help="Max number of iterations to find correct ROIs")
 
 
 args = parser.parse_args()
@@ -140,7 +140,7 @@ plt.clf()
 
 for i in range(len(res)):
     for j in range(len(res[i])):
-        plt.plot(times,res[i][j],label = "Im"+str(i)+"_ROI"+str(j))
+        plt.plot(times,res[i][j],label = "Im"+str(j)+"_ROI"+str(i))
 plt.xlabel("Time")
 plt.legend()
 plt.savefig(folder+os.sep+"res"+os.sep+basename+"_glob.png")

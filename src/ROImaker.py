@@ -22,7 +22,7 @@ def make_rois(img,mask, number, radius ,distance,nmax =10):
         #try:
         if (True):
             rois_local = np.zeros_like(mask,dtype=np.uint16)
-            print(i,"/",number)
+            #print(i,"/",number)
             edt = distance_transform_edt(mask_copy)
 
             val_distances = edt > distance/2+radius-1
@@ -76,6 +76,8 @@ def make_rois(img,mask, number, radius ,distance,nmax =10):
 
                 rois+=rois_local
                 i+=1
+                print(i,"/",number)
+                n=0
         """
         except:
             pass

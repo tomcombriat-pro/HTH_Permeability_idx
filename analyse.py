@@ -59,6 +59,8 @@ try:
 except:
     pass
 
+
+
 ls = os.listdir(folder)
 basename= os.path.basename(args.filename).rsplit("_",maxsplit=1)[0]
 #print(basename,find_time(args.filename))
@@ -68,6 +70,11 @@ for i in ls:
     if (basename in i and ".nd2" in i):
         ls_filtered.append(i)
         times.append(find_time(i))
+
+try:
+    os.mkdir(folder+os.sep+"res"+os.sep+basename)
+except:
+    pass
 
 
 sorting = np.argsort(times)
@@ -105,13 +112,13 @@ for i in range(len(ls_filtered)):
                 plt.colorbar()
                 plt.subplot(122)
                 plt.imshow(med)
-                plt.savefig(folder+os.sep+"res"+os.sep+basename+"_overviewROI_"+str(j)+".png")
+                plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_overviewROI_"+str(j)+".png")
             """
             except:
                 valid[j] = False
                 rois.append(np.zeros_like(img[j]))
             """
-            imsave(folder+os.sep+"res"+os.sep+basename+"_ROIS_"+str(j)+".tiff",rois[j],check_contrast=False)
+            imsave(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_ROIS_"+str(j)+".tiff",rois[j],check_contrast=False)
 
             
 
@@ -121,7 +128,7 @@ for i in range(len(ls_filtered)):
             else:
                 res[i][j].append(0)
 
-out = open(folder+os.sep+"res"+os.sep+basename+"_table.txt","w")
+out = open(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_table.txt","w")
 out.write("## Hello there, comments to come\n")
 
 res = np.array(res)
@@ -148,7 +155,7 @@ for i in range(len(res)):
         plt.plot(times,res[i][j],label = "Im"+str(j)+"_ROI"+str(i))
 plt.xlabel("Time")
 plt.legend()
-plt.savefig(folder+os.sep+"res"+os.sep+basename+"_glob.png")
+plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_glob.png")
             
 
 

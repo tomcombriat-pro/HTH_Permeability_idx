@@ -146,7 +146,25 @@ for i in range(len(res[0])): ## sub-images loop
             out.write(" ")
             out.write(str(res[t][i][k]))
         out.write("\n")
-        
+
+out.write("\n#SUMMARY\n")
+
+if (len(res[0])%4==0): ## Dividable by four
+    for i in range(int(len(res[0])/4)): ## sub-images group
+        sub_res = res[:,4*i:4*i+4,:]
+        out.write("#Chip_"+str(i)+"\n")
+        for t in range(len(sub_res)): # loop on time
+            sub_sub_res = sub_res[t]
+            non_zero_mask = sub_sub_res!=0
+            if (np.sum(non_zero_mask) !=0): ## check whether there is actually some data
+                non_zero_mean = np.mean(sub_sub_res[non_zero_mask])
+            else:
+                non_zero_mean = 0
+            out.write(str(times[t]))
+            out.write(" "+str(non_zero_mean)+"\n")
+            
+                      
+                
 
 out.close()
 

@@ -46,7 +46,7 @@ parser.add_argument('-n', '--n_roi', type=int, default=2,help="Number of rois pe
 parser.add_argument('-mi', '--max_iter', type=int,default=20,help="Max number of iterations to find correct ROIs")
 parser.add_argument('-s','--size_roi', type=int,default=50,help="Radius of the ROIs")
 parser.add_argument('-d','--distance', type=int,default=10,help="Distance between adjactent ROIs")
-parser.add_argument('-f','--manual_filter', type=bool,default=True,help="Manual filtering of the ROIs")
+parser.add_argument('-f','--manual_filter', type=int,default=True,help="Manual filtering of the ROIs")
 
 
 args = parser.parse_args()
@@ -62,7 +62,6 @@ try:
     os.mkdir(folder+os.sep+"res")
 except:
     pass
-
 
 
 ls = os.listdir(folder)
@@ -137,6 +136,10 @@ for i in range(len(ls_filtered)):
                 res[i][j].append(0)
 
 out = open(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_table.txt","w")
+for i in range(len(sys.argv)):
+    out.write(sys.argv[i])
+    out.write(" ")
+out.write("\n")
 out.write("## Hello there, comments to come\n")
 
 res = np.array(res)

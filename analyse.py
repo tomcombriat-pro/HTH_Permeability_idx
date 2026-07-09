@@ -26,6 +26,7 @@ import argparse
 from src.ROImaker import *
 from skimage.io import imsave
 from matplotlib.patches import Circle
+from src.ROI_filter import *
 
 def find_time(st):
     stt = int(os.path.basename(st).rsplit("_",maxsplit=1)[1][1::].split("min")[0])
@@ -45,6 +46,7 @@ parser.add_argument('-n', '--n_roi', type=int, default=2,help="Number of rois pe
 parser.add_argument('-mi', '--max_iter', type=int,default=20,help="Max number of iterations to find correct ROIs")
 parser.add_argument('-s','--size_roi', type=int,default=50,help="Radius of the ROIs")
 parser.add_argument('-d','--distance', type=int,default=10,help="Distance between adjactent ROIs")
+parser.add_argument('-f','--manual_filter', type=bool,default=True,help="Manual filtering of the ROIs")
 
 
 args = parser.parse_args()
@@ -106,7 +108,11 @@ for i in range(len(ls_filtered)):
                 med = median(med,disk(args.median_size))
             #try:
             if (True):
-                rois.append(make_rois(img[j],med,args.n_roi,100,10,args.max_iter))
+                tamp_roi = make_rois(img[j],med,args.n_roi,args.size_roi,args.distance,args.max_iter)
+                if (args.manual_filter):
+                    tamp_roi = filter_roi(img[j], tamp_roi)
+                rois.append(tamp_roi)
+                #rois.append(make_rois(img[j],med,args.n_roi,100,10,args.max_iter))
                 plt.clf()
                 plt.subplot(121)
                 plt.imshow(img[j],cmap="gist_gray")

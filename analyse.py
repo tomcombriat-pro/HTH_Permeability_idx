@@ -123,10 +123,11 @@ for i in range(len(ls_filtered)):
         plt.clf()
         plt.subplot(121)
         plt.imshow(img[j],cmap="gist_gray")
-        plt.imshow(rois[j],alpha=0.4)
-        plt.colorbar()
+        plt.imshow(rois[j],alpha=0.4,cmap="okabe_ito")
+        plt.colorbar(shrink=0.5)
         plt.subplot(122)
         plt.imshow(med)
+        plt.tight_layout()
         plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_overviewROI_"+str(j)+".png")
 
         imsave(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_ROIS_"+str(j)+".tiff",rois[j],check_contrast=False)

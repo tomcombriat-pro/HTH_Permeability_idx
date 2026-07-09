@@ -3,6 +3,7 @@ import numpy as np
 
 
 def filter_roi(img, roi):
+    print(" -> Please right click on the ROIs to remove. Mid click to cancel, enter to confirm.")
     plt.imshow(img,cmap="gist_gray")
     plt.imshow(roi,alpha=.3,cmap="okabe_ito")
     pts = plt.ginput(n=-1,mouse_add = 3,mouse_pop = 2, mouse_stop = None,timeout = -1)

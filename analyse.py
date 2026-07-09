@@ -34,11 +34,11 @@ def find_time(st):
 
 
 parser = argparse.ArgumentParser(
-                    prog='ProgramName',
-                    description='What the program does',
-                    epilog='Text at the bottom of help')
+                    prog='HTH_Permeability_idx',
+                    description='This program computes the fluorescence index between couples of ROIs, that it automatically finds',
+                    epilog='Created with sweat and coffein. Copyright: Combriat 2026',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument('filename')
+parser.add_argument('filename', type=str, help="Input stack, can be any of the time serie" )
 parser.add_argument('-m', '--median', type=int, default=4,help="Number of successive median filter to apply for initial finding")
 parser.add_argument('-ms', '--median_size', type=int, default=6,help="Size of the median filter")
 parser.add_argument('-n', '--n_roi', type=int, default=2,help="Number of rois per image")
@@ -49,6 +49,8 @@ parser.add_argument('-d','--distance', type=int,default=10,help="Distance betwee
 
 args = parser.parse_args()
 
+
+print("--------------------\n    PERMEABILITY IDX \n --------------------")
 
 
 
@@ -150,10 +152,10 @@ out.close()
 
 plt.clf()
 
-for i in range(len(res)):
-    for j in range(len(res[i])):
-        if (res[i][j][0] !=0):
-            plt.plot(times,res[i][j],label = "Im"+str(j)+"_ROI"+str(i))
+for i in range(len(res[0])): ## sub images
+    for j in range(len(res[0][i])): #rois
+        if (res[0][i][j] !=0):
+            plt.plot(times,res[:,i,j],label = "Im"+str(i)+"_ROI"+str(j))
 plt.xlabel("Time")
 plt.legend()
 plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_glob.png")

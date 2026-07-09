@@ -40,7 +40,7 @@ parser = argparse.ArgumentParser(
                     epilog='Created with sweat and coffein. Copyright: Combriat 2026',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('filename', type=str, help="Input stack, can be any of the time serie" )
-parser.add_argument('-m', '--median', type=int, default=4,help="Number of successive median filter to apply for initial finding")
+parser.add_argument('-m', '--median', type=int, default=2,help="Number of successive median filter to apply for initial finding")
 parser.add_argument('-ms', '--median_size', type=int, default=6,help="Size of the median filter")
 parser.add_argument('-n', '--n_roi', type=int, default=2,help="Number of rois per image")
 parser.add_argument('-mi', '--max_iter', type=int,default=20,help="Max number of iterations to find correct ROIs")
@@ -108,24 +108,28 @@ for i in range(len(ls_filtered)):
             #try:
             if (True):
                 tamp_roi = make_rois(img[j],med,args.n_roi,args.size_roi,args.distance,args.max_iter)
-                if (args.manual_filter):
-                    tamp_roi = filter_roi(img[j], tamp_roi)
                 rois.append(tamp_roi)
-                #rois.append(make_rois(img[j],med,args.n_roi,100,10,args.max_iter))
-                plt.clf()
-                plt.subplot(121)
-                plt.imshow(img[j],cmap="gist_gray")
-                plt.imshow(rois[j],alpha=0.4)
-                plt.colorbar()
-                plt.subplot(122)
-                plt.imshow(med)
-                plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_overviewROI_"+str(j)+".png")
-            """
-            except:
-                valid[j] = False
-                rois.append(np.zeros_like(img[j]))
-            """
-            imsave(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_ROIS_"+str(j)+".tiff",rois[j],check_contrast=False)
+
+                
+
+                
+for i in range(len(ls_filtered)):
+    print(" * Opening", ls_filtered[i])
+    img = nd2.imread(folder+os.sep+ls_filtered[i])
+    if (i==0 and args.manual_filter):
+        for j in tqdm(range(len(img))):
+            rois[j] = filter_roi(img[j],rois[j])
+    for j in tqdm(range(len(img))):
+        plt.clf()
+        plt.subplot(121)
+        plt.imshow(img[j],cmap="gist_gray")
+        plt.imshow(rois[j],alpha=0.4)
+        plt.colorbar()
+        plt.subplot(122)
+        plt.imshow(med)
+        plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_overviewROI_"+str(j)+".png")
+
+        imsave(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_ROIS_"+str(j)+".tiff",rois[j],check_contrast=False)
 
             
 

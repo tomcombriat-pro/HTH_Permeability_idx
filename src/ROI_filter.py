@@ -4,7 +4,7 @@ import numpy as np
 
 def filter_roi(img, roi):
     plt.imshow(img,cmap="gist_gray")
-    plt.imshow(roi,alpha=.3)
+    plt.imshow(roi,alpha=.3,cmap="okabe_ito")
     pts = plt.ginput(n=-1,mouse_add = 3,mouse_pop = 2, mouse_stop = None,timeout = -1)
     plt.show()
 
@@ -29,7 +29,7 @@ def filter_roi(img, roi):
 
     
     plt.imshow(img,cmap="gist_gray")
-    plt.imshow(roi,alpha=.3)
+    plt.imshow(roi,alpha=.3,cmap="okabe_ito")
     #pts = plt.ginput(n=-1,mouse_add = 3,mouse_pop = 2, mouse_stop = None,timeout = -1)
     #plt.title("Right click to remove rois, PRESS ENTER before closing")
     plt.show()

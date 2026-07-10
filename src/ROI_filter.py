@@ -18,7 +18,7 @@ def filter_roi(img, roi):
     fig = plt.gcf()
     ax = plt.gca()
     ax.imshow(img,cmap="gist_gray")
-    ax.imshow(roi, alpha=.3, cmap="okabe_ito")
+    ax.imshow(roi, alpha=.3, cmap="Set2")
 
     points = []
     finished = [False]

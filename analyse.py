@@ -93,22 +93,20 @@ res = []
 fig = plt.figure(figsize=(15,15))
 for i in range(len(ls_filtered)):
     res.append([])
-    print(" * Opening", ls_filtered[i])
-    img = nd2.imread(folder+os.sep+ls_filtered[i])
-
     if (i==0):
-        valid = np.ones((len(img)))
-    for j in tqdm(range(len(img))):
-        res[i].append([])
-        if (i==0): ## we need to make rois
-            print(" * Making ROIs")
-            med = median(img[j]>threshold_otsu(img[j]),disk(args.median_size))
-            for m in range(args.median-1):
-                med = median(med,disk(args.median_size))
-            #try:
-            if (True):
-                tamp_roi = make_rois(img[j],med,args.n_roi,args.size_roi,args.distance,args.max_iter)
-                rois.append(tamp_roi)
+        print(" * Opening", ls_filtered[i])
+        img = nd2.imread(folder+os.sep+ls_filtered[i])
+        for j in tqdm(range(len(img))):
+            res[i].append([])
+            if (i==0): ## we need to make rois
+                print(" * Making ROIs")
+                med = median(img[j]>threshold_otsu(img[j]),disk(args.median_size))
+                for m in range(args.median-1):
+                    med = median(med,disk(args.median_size))
+                #try:
+                if (True):
+                    tamp_roi = make_rois(img[j],med,args.n_roi,args.size_roi,args.distance,args.max_iter)
+                    rois.append(tamp_roi)
 
                 
 
@@ -123,7 +121,7 @@ for i in range(len(ls_filtered)):
         plt.clf()
         plt.subplot(121)
         plt.imshow(img[j],cmap="gist_gray")
-        plt.imshow(rois[j],alpha=0.4,cmap="okabe_ito")
+        plt.imshow(rois[j],alpha=0.4,cmap="Set2")
         plt.colorbar(shrink=0.5)
         plt.subplot(122)
         plt.imshow(med)

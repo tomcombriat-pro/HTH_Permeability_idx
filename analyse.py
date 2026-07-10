@@ -90,7 +90,7 @@ print(ls_filtered,times)
 rois = []
 res = []
 
-fig = plt.figure(figsize=(15,15))
+fig = plt.figure(figsize=(30,20))
 for i in range(len(ls_filtered)):
     res.append([])
     #if (i==0):
@@ -127,6 +127,9 @@ for i in range(len(ls_filtered)):
         plt.imshow(rois[j],alpha=0.4,cmap="Set2")
         plt.colorbar(shrink=0.5)
         plt.subplot(122)
+        med = median(img[j]>threshold_otsu(img[j]),disk(args.median_size))
+        for m in range(args.median-1):
+            med = median(med,disk(args.median_size))
         plt.imshow(med)
         plt.tight_layout()
         plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_overviewROI_"+str(j)+".png")
@@ -177,7 +180,8 @@ if (len(res[0])%4==0): ## Dividable by four
                 non_zero_mean = 0
             out.write(str(times[t]))
             out.write(" "+str(non_zero_mean)+"\n")
-            
+else:
+    print("Your number of images is not dividable by four, no summary for you!!")
                       
                 
 

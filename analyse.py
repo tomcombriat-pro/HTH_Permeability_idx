@@ -95,8 +95,9 @@ for i in range(len(ls_filtered)):
     res.append([])
     #if (i==0):
     if (True):
-        print(" * Opening", ls_filtered[i])
+        
         if (i==0):
+            print(" * Opening", ls_filtered[i])
             img = nd2.imread(folder+os.sep+ls_filtered[i])
         for j in tqdm(range(len(img))):
             res[i].append([])

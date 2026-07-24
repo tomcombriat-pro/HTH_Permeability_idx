@@ -96,7 +96,15 @@ plt.figure(figsize= (15,10))
 
 imgs = []
 rois = []
+
+out = open(folder+os.sep+"res"+os.sep+basename+os.sep+"line"+os.sep+"res.txt","w")
+for i in range(len(sys.argv)):
+    out.write(sys.argv[i])
+    out.write(" ")
+out.write("\n")
+
 for i in tqdm(range(len(ls_filtered))):
+    
     print(" * Opening", ls_filtered[i])
     imgs.append(nd2.imread(folder+os.sep+ls_filtered[i]))
     if (i==0):
@@ -106,23 +114,41 @@ for i in tqdm(range(len(ls_filtered))):
 print("  Data loaded :D")
 
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images
+    out.write("### IMAGE#" + str(i)+"\n")
     for t in range(len(imgs)): ## loop on time points
+        
+        plt.clf()
         if (t!=0): # needs registration
             shift, _,_ = phase_cross_correlation(normalize(imgs[0][i]),normalize(imgs[t][i]),reference_mask=n_dilate(imgs[0][i]>threshold_otsu(imgs[0][i]),args.n_dilation),upsample_factor=args.upsample)
         else:
             shift = [0.,0.]
-        #print(t,i,shift)
+        out.write("## Time" + str(times[t])+" Registration (y,x):" + str(shift[0]) + " "+str(shift[1])+ "\n")
         props = ski.measure.regionprops(rois[i])
-        for j in range(int(len(props)/2)):
+        for j in range(int(len(props)/2)): ## loop on ROIs
+            out.write("# ROI" + str(j)+" Amp Slope\n")
+            
             rect_mask = aligned_rectangle_distance_along_segment((int(props[2*j].centroid[1]+shift[1]),int(props[2*j].centroid[0]+shift[0])),(int(props[2*j+1].centroid[1]+shift[1]),int(props[2*j+1].centroid[0]+shift[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
             distances = rect_mask[rect_mask!=0]
-            values = img[r][rect_mask!=0]
+            values = imgs[t][i][rect_mask!=0]
 
             sorting = np.argsort(distances)
             distances = distances[sorting]
             values = values[sorting]
+
+            popt, _ = curve_fit(moved_arctan,distances,values,p0 = [np.amax(distances)/2,1,np.amax(values)-np.amin(values),np.mean(values)])
+            out.write("%i %f %f\n" % (j,popt[2],popt[1] ))
+            plt.subplot(211)
+            plt.scatter(distances,values,alpha=.2)
+            plt.plot(distances,moved_arctan(distances,*popt),label = "Amp (A)="+"%.2f" % (popt[2])+" // Slope (s)="+"%.4f" % popt[1])
+            plt.legend()
+
+            plt.subplot(212)
+            plt.scatter(distances,values-moved_arctan(distances,*popt),alpha=.1)
+            plt.axhline(0)
+        plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line"+os.sep+"line_IMG"+str(i)+"_time"+str(times[t])+".png")
+            
         
-        
+out.close()
         
         
 """

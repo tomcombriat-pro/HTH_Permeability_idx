@@ -139,7 +139,7 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
             distances = distances[sorting]
             values = values[sorting]
 
-            popt, _ = curve_fit(moved_arctan,distances,values,p0 = [np.amax(distances)/2,1,np.amax(values)-np.amin(values),np.mean(values)])
+            popt, _ = curve_fit(moved_arctan,distances,values,p0 = [np.amax(distances)/2,1,np.amax(values)-np.amin(values),np.mean(values)],maxfev=1e6)
             out.write("%i %f %f\n" % (j,popt[2],popt[1] ))
             amps[t].append(popt[2])
             slopes[t].append(popt[1])

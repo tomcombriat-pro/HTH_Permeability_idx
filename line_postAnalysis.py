@@ -115,8 +115,12 @@ print("  Data loaded :D")
 
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images
     out.write("### IMAGE#" + str(i)+"\n")
+
+    slopes = []
+    amps = []
     for t in range(len(imgs)): ## loop on time points
-        
+        slopes.append([])
+        amps.append([])
         plt.clf()
         if (t!=0): # needs registration
             shift, _,_ = phase_cross_correlation(normalize(imgs[0][i]),normalize(imgs[t][i]),reference_mask=n_dilate(imgs[0][i]>threshold_otsu(imgs[0][i]),args.n_dilation),upsample_factor=args.upsample)
@@ -137,6 +141,8 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
 
             popt, _ = curve_fit(moved_arctan,distances,values,p0 = [np.amax(distances)/2,1,np.amax(values)-np.amin(values),np.mean(values)])
             out.write("%i %f %f\n" % (j,popt[2],popt[1] ))
+            amps[t].append(popt[2])
+            slopes[t].append(popt[1])
             plt.subplot(211)
             plt.scatter(distances,values,alpha=.2)
             plt.plot(distances,moved_arctan(distances,*popt),label = "Amp (A)="+"%.2f" % (popt[2])+" // Slope (s)="+"%.4f" % popt[1])
@@ -146,6 +152,21 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
             plt.scatter(distances,values-moved_arctan(distances,*popt),alpha=.1)
             plt.axhline(0)
         plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line"+os.sep+"line_IMG"+str(i)+"_time"+str(times[t])+".png")
+
+    slopes_mean = []
+    amps_mean = []
+    for t in range(len(slopes)):
+        slopes_mean.append(np.mean(slopes[t]))
+        amps_mean.append(np.mean(amps[t]))
+        plt.clf()
+        plt.subplot(121)
+        plt.plot(slopes)
+        plt.title("Slopes")
+        plt.subplot(122)
+        plt.plot(amps)
+        plt.title("Amps")
+        plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line"+os.sep+"line_IMG"+str(i)+"_overview.png")
+        
             
         
 out.close()

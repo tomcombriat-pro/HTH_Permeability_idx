@@ -131,7 +131,8 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
         for j in range(int(len(props)/2)): ## loop on ROIs
             out.write("# ROI" + str(j)+" Amp Slope\n")
             
-            rect_mask = aligned_rectangle_distance_along_segment((int(props[2*j].centroid[1]+shift[1]),int(props[2*j].centroid[0]+shift[0])),(int(props[2*j+1].centroid[1]+shift[1]),int(props[2*j+1].centroid[0]+shift[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
+            #rect_mask = aligned_rectangle_distance_along_segment((int(props[2*j].centroid[1]+shift[1]),int(props[2*j].centroid[0]+shift[0])),(int(props[2*j+1].centroid[1]+shift[1]),int(props[2*j+1].centroid[0]+shift[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
+            rect_mask = aligned_rectangle_distance_along_segment((int(props[2*j].centroid[1]-shift[1]),int(props[2*j].centroid[0]-shift[0])),(int(props[2*j+1].centroid[1]-shift[1]),int(props[2*j+1].centroid[0]-shift[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
             distances = rect_mask[rect_mask!=0]
             values = imgs[t][i][rect_mask!=0]
 

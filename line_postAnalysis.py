@@ -114,7 +114,7 @@ for i in tqdm(range(len(ls_filtered))):
 print("  Data loaded :D")
 
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images
-    out.write("### IMAGE#" + str(i)+"\n")
+    out.write("\n\n### IMAGE#" + str(i)+"\n")
 
     slopes = []
     amps = []
@@ -129,7 +129,7 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
         out.write("## Time" + str(times[t])+" Registration (y,x):" + str(shift[0]) + " "+str(shift[1])+ "\n")
         props = ski.measure.regionprops(rois[i])
         for j in range(int(len(props)/2)): ## loop on ROIs
-            out.write("# ROI" + str(j)+" Amp Slope\n")
+            #out.write("# ROI" + str(j)+" Amp Slope\n")
             
             #rect_mask = aligned_rectangle_distance_along_segment((int(props[2*j].centroid[1]+shift[1]),int(props[2*j].centroid[0]+shift[0])),(int(props[2*j+1].centroid[1]+shift[1]),int(props[2*j+1].centroid[0]+shift[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
             rect_mask = aligned_rectangle_distance_along_segment((int(props[2*j].centroid[1]-shift[1]),int(props[2*j].centroid[0]-shift[0])),(int(props[2*j+1].centroid[1]-shift[1]),int(props[2*j+1].centroid[0]-shift[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
@@ -141,7 +141,7 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
             values = values[sorting]
 
             popt, _ = curve_fit(moved_arctan,distances,values,p0 = [np.amax(distances)/2,1,np.amax(values)-np.amin(values),np.mean(values)],maxfev=int(1e6))
-            out.write("%i %f %f\n" % (j,popt[2],popt[1] ))
+            #out.write("%i %f %f\n" % (j,popt[2],popt[1] ))
             amps[t].append(popt[2])
             slopes[t].append(popt[1])
             plt.subplot(211)
@@ -167,6 +167,15 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
         plt.plot(amps)
         plt.title("Amps")
         plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line"+os.sep+"line_IMG"+str(i)+"_overview.png")
+
+    for j in range(len(slopes[0])):
+        out.write("\n#ROI_"+str(j)+"\n")
+        out.write("Time Amp Slope\n")
+        for t in range(len(slopes)):
+            out.write("%i %f %f\n" % (times[t],amps[t][j],slopes[t][j] ))
+            
+            
+            
         
             
         

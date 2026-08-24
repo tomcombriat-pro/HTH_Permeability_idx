@@ -162,14 +162,14 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
     for t in range(len(slopes)):
         slopes_mean.append(np.mean(slopes[t]))
         amps_mean.append(np.mean(amps[t]))
-        plt.clf()
-        plt.subplot(121)
-        plt.plot(slopes)
-        plt.title("Slopes")
-        plt.subplot(122)
-        plt.plot(amps)
-        plt.title("Amps")
-        plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line"+os.sep+"line_IMG"+str(i)+"_overview.png")
+    plt.clf()
+    plt.subplot(121)
+    plt.plot(slopes)
+    plt.title("Slopes")
+    plt.subplot(122)
+    plt.plot(amps)
+    plt.title("Amps")
+    plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line"+os.sep+"line_IMG"+str(i)+"_overview.png")
 
     for j in range(len(slopes[0])):
         out.write("\n#ROI_"+str(j)+"\n")

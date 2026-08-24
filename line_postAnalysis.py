@@ -133,25 +133,28 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
             
             #rect_mask = aligned_rectangle_distance_along_segment((int(props[2*j].centroid[1]+shift[1]),int(props[2*j].centroid[0]+shift[0])),(int(props[2*j+1].centroid[1]+shift[1]),int(props[2*j+1].centroid[0]+shift[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
             rect_mask = aligned_rectangle_distance_along_segment((int(props[2*j].centroid[1]-shift[1]),int(props[2*j].centroid[0]-shift[0])),(int(props[2*j+1].centroid[1]-shift[1]),int(props[2*j+1].centroid[0]-shift[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
+            
             distances = rect_mask[rect_mask!=0]
-            values = imgs[t][i][rect_mask!=0]
+            #print(distances)
+            if (np.sum(distances) > 0):
+                values = imgs[t][i][rect_mask!=0]
 
-            sorting = np.argsort(distances)
-            distances = distances[sorting]
-            values = values[sorting]
+                sorting = np.argsort(distances)
+                distances = distances[sorting]
+                values = values[sorting]
 
-            popt, _ = curve_fit(moved_arctan,distances,values,p0 = [np.amax(distances)/2,1,np.amax(values)-np.amin(values),np.mean(values)],maxfev=int(1e6))
-            #out.write("%i %f %f\n" % (j,popt[2],popt[1] ))
-            amps[t].append(popt[2])
-            slopes[t].append(popt[1])
-            plt.subplot(211)
-            plt.scatter(distances,values,alpha=.2)
-            plt.plot(distances,moved_arctan(distances,*popt),label = "Amp (A)="+"%.2f" % (popt[2])+" // Slope (s)="+"%.4f" % popt[1])
-            plt.legend()
+                popt, _ = curve_fit(moved_arctan,distances,values,p0 = [np.amax(distances)/2,1,np.amax(values)-np.amin(values),np.mean(values)],maxfev=int(1e6))
+                #out.write("%i %f %f\n" % (j,popt[2],popt[1] ))
+                amps[t].append(popt[2])
+                slopes[t].append(popt[1])
+                plt.subplot(211)
+                plt.scatter(distances,values,alpha=.2)
+                plt.plot(distances,moved_arctan(distances,*popt),label = "Amp (A)="+"%.2f" % (popt[2])+" // Slope (s)="+"%.4f" % popt[1])
+                plt.legend()
 
-            plt.subplot(212)
-            plt.scatter(distances,values-moved_arctan(distances,*popt),alpha=.1)
-            plt.axhline(0)
+                plt.subplot(212)
+                plt.scatter(distances,values-moved_arctan(distances,*popt),alpha=.1)
+                plt.axhline(0)
         plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line"+os.sep+"line_IMG"+str(i)+"_time"+str(times[t])+".png")
 
     slopes_mean = []

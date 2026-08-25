@@ -124,8 +124,16 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
         plt.clf()
         if (t!=0): # needs registration
             shift, _,_ = phase_cross_correlation(normalize(imgs[0][i]),normalize(imgs[t][i]),reference_mask=n_dilate(imgs[0][i]>threshold_otsu(imgs[0][i]),args.n_dilation),upsample_factor=args.upsample)
+            #shift_unmasked,_,_ = phase_cross_correlation(normalize(imgs[0][i]),normalize(imgs[t][i]),upsample_factor=args.upsample)
+            #print("Shifts (mask/unmasked):", shift, shift_unmasked)
         else:
             shift = [0.,0.]
+        ## Railguard against ultra high (and false shifts)
+        if (np.abs(shift[0]) > 100):
+            shift[0] = 0
+
+        if (np.abs(shift[1]) > 100):
+            shift[1] = 0
         out.write("## Time" + str(times[t])+" Registration (y,x):" + str(shift[0]) + " "+str(shift[1])+ "\n")
         props = ski.measure.regionprops(rois[i])
         for j in range(int(len(props)/2)): ## loop on ROIs

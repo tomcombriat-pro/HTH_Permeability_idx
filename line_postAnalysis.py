@@ -155,6 +155,9 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
                 plt.subplot(212)
                 plt.scatter(distances,values-moved_arctan(distances,*popt),alpha=.1)
                 plt.axhline(0)
+            else:
+                amps[t].append(np.nan)
+                slopes[t].append(np.nan)
         plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line"+os.sep+"line_IMG"+str(i)+"_time"+str(times[t])+".png")
 
     slopes_mean = []

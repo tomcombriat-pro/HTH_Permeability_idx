@@ -22,6 +22,7 @@ from skimage.feature import peak_local_max
 from scipy.ndimage import distance_transform_edt
 from skimage.morphology import disk
 from skimage.registration import phase_cross_correlation
+from matplotlib.widgets import PolygonSelector
 
 import argparse
 from src.ROImaker import *
@@ -108,16 +109,21 @@ print("Data Loaded!")
 
 
 
-print(" * Registering (this might take some time...)")
-for i in tqdm(range(len(imgs[0]))): # loop on sub-images
-    #out.write("\n\n### IMAGE#" + str(i)+"\n")
 
-    slopes = []
-    amps = []
+fig = plt.figure(figsize=(30,20))
+#print(" * Registering (this might take some time...)")
+for i in tqdm(range(len(imgs[0]))): # loop on sub-images
+
+    ## Defining the ROIs main area
+    #plt.clf()
+    ss = select_main_area(imgs[0][i])
+    
+
+
+
+"""
     for t in range(len(imgs)): ## loop on time points
-        slopes.append([])
-        amps.append([])
         plt.clf()
         if (t!=0): # needs registration
             shift, _,_ = phase_cross_correlation(normalize(imgs[0][i]),normalize(imgs[t][i]),reference_mask=n_dilate(imgs[0][i]>threshold_otsu(imgs[0][i]),args.n_dilation),upsample_factor=args.upsample)
-    
+""" 

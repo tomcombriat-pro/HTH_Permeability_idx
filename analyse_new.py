@@ -108,17 +108,31 @@ for i in tqdm(range(len(ls_filtered))):  ## opening and storing all images
 print("Data Loaded!")
 
 
-
-
+masks_pol = []
+rois = []
 fig = plt.figure(figsize=(30,20))
 #print(" * Registering (this might take some time...)")
-for i in tqdm(range(len(imgs[0]))): # loop on sub-images
+for i in tqdm(range(len(imgs[0]))): # loop on sub-images, polygon drawing
 
     ## Defining the ROIs main area
     #plt.clf()
-    ss = select_main_area(imgs[0][i])
-    
+     masks_pol.append(select_main_area(imgs[0][i]))
 
+
+
+
+
+
+for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs finding
+     med = median(imgs[0][i]>threshold_otsu(imgs[0][i][masks_pol[i]]),disk(args.median_size))
+     for m in range(args.median-1):
+         med = median(med,disk(args.median_size))
+     med *= masks_pol[i]
+     rois.append(make_rois(imgs[0][i],med,args.n_roi,args.size_roi,args.distance,args.max_iter))
+
+
+for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs finding
+    rois[i] = filter_roi(imgs[0][i],rois[i])
 
 
 """

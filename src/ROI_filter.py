@@ -24,12 +24,14 @@ def select_main_area(img):
     plt.clf()
     
     vertices = np.array(selector.verts)
-    img = np.zeros(img.shape)
-    rr, cc = polygon(vertices[:,1], vertices[:,0], img.shape)
-    img[rr,cc] = 1
+    if (len(vertices)):
+        img = np.zeros(img.shape,dtype=bool)
+        rr, cc = polygon(vertices[:,1], vertices[:,0], img.shape)
+        img[rr,cc] = 1
+    else:
+        img = np.ones(img.shape,dtype=bool)
 
-    #plt.imshow(img)
-    #plt.show()
+
     return img
 
 

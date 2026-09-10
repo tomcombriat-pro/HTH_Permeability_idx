@@ -1,5 +1,39 @@
 import matplotlib.pyplot as plt  # plotting
 import numpy as np
+from matplotlib.widgets import PolygonSelector
+from skimage.draw import polygon
+
+
+
+def select_main_area(img):
+    plt.clf()
+
+
+    #fig, ax = plt.subplots()
+    fig = plt.gcf()
+    ax = plt.gca()
+
+    ax.imshow(img,cmap="inferno")
+    
+    #fig.show()
+    selector = PolygonSelector(ax, lambda *args: None,props=dict(color='w', linestyle='-', linewidth=2, alpha=0.5))
+    plt.show()
+    
+
+
+    plt.clf()
+    
+    vertices = np.array(selector.verts)
+    img = np.zeros(img.shape)
+    rr, cc = polygon(vertices[:,1], vertices[:,0], img.shape)
+    img[rr,cc] = 1
+
+    #plt.imshow(img)
+    #plt.show()
+    return img
+
+
+
 
 
 def filter_roi(img, roi):

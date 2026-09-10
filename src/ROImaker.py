@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 
-def make_rois(img, mask, number, radius, distance, nmax=10):
+def make_rois(img, mask, number, radius, distance, nmax=1000):
     H, W = mask.shape
     mask_copy = mask.copy()
     mask_copy[0] = 0
@@ -55,13 +55,31 @@ def make_rois(img, mask, number, radius, distance, nmax=10):
     while i < number and n < nmax:
         n += 1
 
+        # Random placing
         # ── Pick first point from valid band candidates ──
         valid_idx = np.flatnonzero(band_valid)
         if len(valid_idx) == 0:
             return rois
         pick = valid_idx[np.random.randint(0, len(valid_idx))]
         y0, x0 = int(band_y[pick]), int(band_x[pick])
+        """
 
+        valid_idx = np.flatnonzero(band_valid)
+        if len(valid_idx) == 0:
+            return rois
+
+        if i == 0:
+            # First point: most central band pixel (farthest from mask boundary)
+            pick = valid_idx[np.argmax(edt_mask[band_y[valid_idx],
+                                                band_x[valid_idx]])]
+        else:
+            # Subsequent points: farthest from all placed ROIs
+            candidates_sq = edt_rois_sq[band_y[valid_idx], band_x[valid_idx]]
+            pick = valid_idx[np.argmax(candidates_sq)]
+
+        y0, x0 = int(band_y[pick]), int(band_x[pick])
+        """
+        
         # Place first ROI disk (write directly, undo on failure)
         rr, cc = disk_draw((y0, x0), radius, shape=rois.shape)
         rois[rr, cc] = 2 * i + 1
@@ -110,6 +128,6 @@ def make_rois(img, mask, number, radius, distance, nmax=10):
         else:
             # No valid companion — undo first disk and retry
             rois[rr, cc] = 0
-
+            band_valid[pick] = False
     return rois
 

@@ -16,6 +16,7 @@ import nd2
 import sys
 import skimage.io as io
 from tqdm import tqdm
+import colorama as cl
 
 from skimage.filters import laplace, gaussian, threshold_otsu, median
 from skimage.feature import peak_local_max
@@ -62,7 +63,7 @@ parser.add_argument('-x', '--extra_length', type=int, default=50,help="Line extr
 args = parser.parse_args()
 
 
-print("--------------------\n    PERMEABILITY IDX  ")
+print("--------------------\n  PERMEABILITY IDX  ")
 print("                    \n        REBORN...    \n --------------------")
 
 
@@ -105,39 +106,57 @@ print(ls_filtered,times)
 imgs = []
 for i in tqdm(range(len(ls_filtered))):  ## opening and storing all images
     imgs.append(nd2.imread(folder+os.sep+ls_filtered[i]))
-print("Data Loaded!")
+print(cl.Back.GREEN+"Data Loaded!"+ cl.Style.RESET_ALL)
 
 
 masks_pol = []
 rois = []
 fig = plt.figure(figsize=(30,20))
 #print(" * Registering (this might take some time...)")
+print(cl.Fore.BLUE+ " * Main area selection, draw a ploygon to restrict the algorithm to this area. You can close the area without drawing anything. Esc to reset."+ cl.Style.RESET_ALL)
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images, polygon drawing
 
     ## Defining the ROIs main area
     #plt.clf()
      masks_pol.append(select_main_area(imgs[0][i]))
+     break
 
 
 
 
-
-
+print(" * Finding ROIs...")
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs finding
      med = median(imgs[0][i]>threshold_otsu(imgs[0][i][masks_pol[i]]),disk(args.median_size))
      for m in range(args.median-1):
          med = median(med,disk(args.median_size))
      med *= masks_pol[i]
      rois.append(make_rois(imgs[0][i],med,args.n_roi,args.size_roi,args.distance,args.max_iter))
+     break
 
+print(cl.Fore.BLUE+" * ROIs filtering. Right-click on the ROIs you want to have removed. Enter to finish"  + cl.Style.RESET_ALL)
 
-for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs finding
+for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs filtering
     rois[i] = filter_roi(imgs[0][i],rois[i])
+    break
 
 
-"""
+print(" * Registering... This may take a while")
+shifts = []
+for i in tqdm(range(len(imgs[0]))): # loop on sub-images, registration
+    shifts.append([])
     for t in range(len(imgs)): ## loop on time points
-        plt.clf()
+        
         if (t!=0): # needs registration
             shift, _,_ = phase_cross_correlation(normalize(imgs[0][i]),normalize(imgs[t][i]),reference_mask=n_dilate(imgs[0][i]>threshold_otsu(imgs[0][i]),args.n_dilation),upsample_factor=args.upsample)
-""" 
+            shifts[i].append(shift)
+        else:
+            shifts[i].append([0.,0.])
+
+print(np.array(shifts).shape)
+        
+            
+
+print(cl.Back.GREEN+"Registering done!"+ cl.Style.RESET_ALL)
+
+
+

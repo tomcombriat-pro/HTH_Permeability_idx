@@ -110,4 +110,14 @@ def filter_roi(img, roi):
     #plt.title("Right click to remove rois, PRESS ENTER before closing")
     plt.show()
 
+
+    ##### Re-order
+    for i in range(2,np.amax(roi)+1):
+        curr_idx = i
+        while (np.sum(roi==curr_idx-1)==0 and curr_idx>1 and np.sum(roi==curr_idx)>0):
+            #print("Moving ", curr_idx," to ", curr_idx-1)
+            roi[roi==curr_idx] = curr_idx-1
+            curr_idx = curr_idx-1
+        
+
     return roi

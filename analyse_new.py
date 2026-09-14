@@ -30,14 +30,25 @@ from src.ROImaker import *
 from skimage.io import imsave
 from matplotlib.patches import Circle
 from src.ROI_filter import *
+from skimage.util import img_as_ubyte
 
 from src.LineUtils import *
 from src.ImUtils import *
 from src.FitUtils import *
+import skimage as ski
 
 def find_time(st):
     stt = int(os.path.basename(st).rsplit("_",maxsplit=1)[1][1::].split("min")[0])
     return stt
+
+
+from skimage.transform import AffineTransform, warp
+
+def shift(image, vector):
+    transform = AffineTransform(translation=vector)
+    shifted = warp(image, transform, mode='wrap', preserve_range=True)
+
+    shifted = shifted.astype(image.dtype)
     
 
 
@@ -119,25 +130,37 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, polygon drawing
     ## Defining the ROIs main area
     #plt.clf()
      masks_pol.append(select_main_area(imgs[0][i]))
-     break
 
 
 
 
+meds = []
 print(" * Finding ROIs...")
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs finding
      med = median(imgs[0][i]>threshold_otsu(imgs[0][i][masks_pol[i]]),disk(args.median_size))
      for m in range(args.median-1):
          med = median(med,disk(args.median_size))
      med *= masks_pol[i]
+     meds.append(med)
      rois.append(make_rois(imgs[0][i],med,args.n_roi,args.size_roi,args.distance,args.max_iter))
-     break
+     imsave(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_mask_"+str(i)+".tiff",img_as_ubyte(np.array(med,dtype=bool)),check_contrast=False)
+
 
 print(cl.Fore.BLUE+" * ROIs filtering. Right-click on the ROIs you want to have removed. Enter to finish"  + cl.Style.RESET_ALL)
 
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs filtering
     rois[i] = filter_roi(imgs[0][i],rois[i])
-    break
+    plt.clf()
+    plt.subplot(121)
+    plt.imshow(imgs[0][i],cmap="gist_gray")
+    plt.imshow(rois[i],alpha=0.4,cmap="Set2")
+    plt.colorbar(shrink=0.5)
+    plt.subplot(122)
+    plt.imshow(meds[i])
+    plt.tight_layout()
+    plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_overviewROI_"+str(i)+".png")
+    
+
 
 
 print(" * Registering... This may take a while")
@@ -147,16 +170,89 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, registration
     for t in range(len(imgs)): ## loop on time points
         
         if (t!=0): # needs registration
-            shift, _,_ = phase_cross_correlation(normalize(imgs[0][i]),normalize(imgs[t][i]),reference_mask=n_dilate(imgs[0][i]>threshold_otsu(imgs[0][i]),args.n_dilation),upsample_factor=args.upsample)
-            shifts[i].append(shift)
+            shiftt, _,_ = phase_cross_correlation(normalize(imgs[0][i]),normalize(imgs[t][i]),reference_mask=n_dilate(imgs[0][i]>threshold_otsu(imgs[0][i]),args.n_dilation),upsample_factor=args.upsample)
+            shifts[i].append(shiftt)
         else:
             shifts[i].append([0.,0.])
-
-print(np.array(shifts).shape)
-        
             
+print(np.array(shifts).shape)
+
+print(shifts)
+
+#shifts = np.zeros((16,4,2))         
 
 print(cl.Back.GREEN+"Registering done!"+ cl.Style.RESET_ALL)
 
 
 
+
+out = open(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_table.txt","w")
+out_detail = open(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_table_detail.txt","w")
+out_detail.write("# Command: ")
+for i in sys.argv:
+    out_detail.write(i+" ")
+out_detail.write("\n")
+
+
+rgb = np.zeros((len(imgs[0][0]),len(imgs[0][0][0]),3))
+
+for i in tqdm(range(len(imgs[0]))): # loop on sub-images
+    out_detail.write("\n## IMG_"+str(i)+"\n")
+    out.write("## IMG_"+str(i)+"\n")
+    out.write("#Time Ratio_circle Ratio_fit Slope N\n")
+    
+    props = ski.measure.regionprops(rois[i])
+    for t in range(len(imgs)): ## loop on time points
+        out_detail.write("### Time "+str(times[t])+"\n")
+        out_detail.write("### Registration " + str(shifts[i][t][0])+ " "+str(shifts[i][t][1])+"\n")
+        curr_img = shift(imgs[t][i],shifts[i][t])
+        res = []
+        popts = []
+        plt.clf()
+        for r in range(args.n_roi):
+            if (np.sum(rois[i]==2*r+2) > 0):
+                res.append(np.mean(imgs[t][i][rois[i]==2*r+2])/np.mean(imgs[t][i][rois[i]==2*r+1]))
+
+
+
+                
+                rect_mask = aligned_rectangle_distance_along_segment((int(props[2*r].centroid[1]),int(props[2*r].centroid[0])),(int(props[2*r+1].centroid[1]),int(props[2*r+1].centroid[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
+
+                distances = rect_mask[rect_mask!=0]
+                if (np.sum(distances) > 0):
+                    values = imgs[t][i][rect_mask!=0]
+
+                    sorting = np.argsort(distances)
+                    distances = distances[sorting]
+                    values = values[sorting]
+
+                    popt, _ = curve_fit(moved_arctan,distances,values,p0 = [np.amax(distances)/2,1,np.amax(values)-np.amin(values),np.mean(values)],maxfev=int(1e6))
+                    popts.append(popt)
+
+                    
+                    plt.subplot(211)
+                    plt.scatter(distances,values,alpha=.2)
+                    plt.plot(distances,moved_arctan(distances,*popt),label = "ROI_"+str(r))
+                    plt.legend()
+
+                    plt.subplot(212)
+                    plt.scatter(distances,values-moved_arctan(distances,*popt),alpha=.1)
+                    plt.axhline(0)
+
+                    out_detail.write("#ROI_"+str(r)+ " Fit parameters:")
+                    for p in popt:
+                        out_detail.write(" "+str(p))
+                    out_detail.write("\n")
+
+
+
+        plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line_IMG"+str(i)+"_time"+str(times[t])+".png")
+        out.write(str(times[t])+" "+str(np.mean(res)))
+        popts = np.array(popts)
+        out.write(" "+str(1/np.mean((popts[:,3]+popts[:,2])/(popts[:,3]-popts[:,2])))+" "+str(np.mean(popts[:,1]))+" "+str(len(res))+"\n")
+
+
+                
+
+out.close()
+out_detail.close()

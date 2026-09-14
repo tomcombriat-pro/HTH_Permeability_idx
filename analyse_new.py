@@ -124,7 +124,7 @@ masks_pol = []
 rois = []
 fig = plt.figure(figsize=(30,20))
 #print(" * Registering (this might take some time...)")
-print(cl.Fore.BLUE+ " * Main area selection, draw a ploygon to restrict the algorithm to this area. You can close the area without drawing anything. Esc to reset."+ cl.Style.RESET_ALL)
+print(cl.Fore.BLUE+cl.Back.RED+ " * Main area selection, draw a polygon to restrict the algorithm to this area. You can close the window without drawing anything. Esc to reset."+ cl.Style.RESET_ALL)
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images, polygon drawing
 
     ## Defining the ROIs main area
@@ -146,11 +146,10 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs finding
      imsave(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_mask_"+str(i)+".tiff",img_as_ubyte(np.array(med,dtype=bool)),check_contrast=False)
 
 
-print(cl.Fore.BLUE+" * ROIs filtering. Right-click on the ROIs you want to have removed. Enter to finish"  + cl.Style.RESET_ALL)
+print(cl.Fore.BLUE+cl.Back.RED+" * ROIs filtering. Right-click on the ROIs you want to have removed. Enter to finish"  + cl.Style.RESET_ALL)
 
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs filtering
     rois[i] = filter_roi(imgs[0][i],rois[i])
-    plt.clf()
     plt.subplot(121)
     plt.imshow(imgs[0][i],cmap="gist_gray")
     plt.imshow(rois[i],alpha=0.4,cmap="Set2")
@@ -159,7 +158,7 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs filtering
     plt.imshow(meds[i])
     plt.tight_layout()
     plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_overviewROI_"+str(i)+".png")
-    
+    plt.clf()
 
 
 
@@ -175,9 +174,9 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, registration
         else:
             shifts[i].append([0.,0.])
             
-print(np.array(shifts).shape)
+#print(np.array(shifts).shape)
 
-print(shifts)
+#print(shifts)
 
 #shifts = np.zeros((16,4,2))         
 
@@ -208,15 +207,12 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
         curr_img = shift(imgs[t][i],shifts[i][t])
         res = []
         popts = []
-        plt.clf()
-        for r in range(args.n_roi):
-            if (np.sum(rois[i]==2*r+2) > 0):
-                res.append(np.mean(imgs[t][i][rois[i]==2*r+2])/np.mean(imgs[t][i][rois[i]==2*r+1]))
-
-
-
+        for r in range(1,int(np.amax(rois[i])/2+1)):
+            #if (np.sum(rois[i]==2*r+2) > 0):
+            if (True):
+                res.append(np.mean(imgs[t][i][rois[i]==2*r])/np.mean(imgs[t][i][rois[i]==2*r-1]))
                 
-                rect_mask = aligned_rectangle_distance_along_segment((int(props[2*r].centroid[1]),int(props[2*r].centroid[0])),(int(props[2*r+1].centroid[1]),int(props[2*r+1].centroid[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
+                rect_mask = aligned_rectangle_distance_along_segment((int(props[2*r-2].centroid[1]),int(props[2*r-2].centroid[0])),(int(props[r*2-1].centroid[1]),int(props[2*r-1].centroid[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
 
                 distances = rect_mask[rect_mask!=0]
                 if (np.sum(distances) > 0):
@@ -247,6 +243,7 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
 
 
         plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"line_IMG"+str(i)+"_time"+str(times[t])+".png")
+        plt.clf()
         out.write(str(times[t])+" "+str(np.mean(res)))
         popts = np.array(popts)
         out.write(" "+str(1/np.mean((popts[:,3]+popts[:,2])/(popts[:,3]-popts[:,2])))+" "+str(np.mean(popts[:,1]))+" "+str(len(res))+"\n")

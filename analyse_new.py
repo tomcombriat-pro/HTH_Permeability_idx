@@ -69,7 +69,7 @@ parser.add_argument('-nd', '--n_dilation', type=int, default=5,help="Number of s
 parser.add_argument('-u', '--upsample', type=int, default=1,help="Upsample factor for the registration")
 parser.add_argument('-w', '--width', type=int, default=50,help="Width of the line to find the profile")
 parser.add_argument('-x', '--extra_length', type=int, default=50,help="Line extra length beyond the ROIs")
-
+parser.add_argument('-sr', '--sanity_registering', type=bool, default=False,help="Whether to output, or not an RGB image showing the registration done")
 
 args = parser.parse_args()
 
@@ -196,15 +196,23 @@ out_detail.write("\n")
 rgb = np.zeros((len(imgs[0][0]),len(imgs[0][0][0]),3))
 
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images
+
+    if (args.sanity_registering):
+        rgb_out = np.zeros((len(imgs[t][i]),len(imgs[t][i][0]),3))
+        
     out_detail.write("\n## IMG_"+str(i)+"\n")
     out.write("## IMG_"+str(i)+"\n")
-    out.write("#Time Ratio_circle Ratio_fit Slope N\n")
-    
+    out.write("#Time Ratio_circle Ratio_fit Slope N\n")    
     props = ski.measure.regionprops(rois[i])
     for t in range(len(imgs)): ## loop on time points
+
+        
         out_detail.write("### Time "+str(times[t])+"\n")
         out_detail.write("### Registration " + str(shifts[i][t][0])+ " "+str(shifts[i][t][1])+"\n")
         curr_img = shift(imgs[t][i],shifts[i][t])
+        if (args.sanity_registering and t<3):
+            rgb_out[:,:,t] = normalize(curr_img)
+        
         res = []
         popts = []
         for r in range(1,int(np.amax(rois[i])/2+1)):
@@ -247,6 +255,9 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
         out.write(str(times[t])+" "+str(np.mean(res)))
         popts = np.array(popts)
         out.write(" "+str(1/np.mean((popts[:,3]+popts[:,2])/(popts[:,3]-popts[:,2])))+" "+str(np.mean(popts[:,1]))+" "+str(len(res))+"\n")
+    if (args.sanity_registering):
+        plt.imshow(rgb_out)
+        plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"registering_IMG"+str(i)+".png")
 
 
                 

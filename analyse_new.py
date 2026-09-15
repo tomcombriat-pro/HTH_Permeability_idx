@@ -210,13 +210,13 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
         for r in range(1,int(np.amax(rois[i])/2+1)):
             #if (np.sum(rois[i]==2*r+2) > 0):
             if (True):
-                res.append(np.mean(imgs[t][i][rois[i]==2*r])/np.mean(imgs[t][i][rois[i]==2*r-1]))
+                res.append(np.mean(curr_img[rois[i]==2*r])/np.mean(curr_img[rois[i]==2*r-1]))
                 
                 rect_mask = aligned_rectangle_distance_along_segment((int(props[2*r-2].centroid[1]),int(props[2*r-2].centroid[0])),(int(props[r*2-1].centroid[1]),int(props[2*r-1].centroid[0])),rois[i].shape,args.width,outside_value=0,extra_length=args.extra_length)
 
                 distances = rect_mask[rect_mask!=0]
                 if (np.sum(distances) > 0):
-                    values = imgs[t][i][rect_mask!=0]
+                    values = curr_img[rect_mask!=0]
 
                     sorting = np.argsort(distances)
                     distances = distances[sorting]

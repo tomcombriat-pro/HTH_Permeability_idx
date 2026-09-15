@@ -45,10 +45,13 @@ def find_time(st):
 from skimage.transform import AffineTransform, warp
 
 def shift(image, vector):
+    for i in range(len(vector)):
+        vector[i]=-vector[i]
     transform = AffineTransform(translation=vector)
     shifted = warp(image, transform, mode='wrap', preserve_range=True)
 
     shifted = shifted.astype(image.dtype)
+    return shifted
     
 
 
@@ -130,7 +133,7 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, polygon drawing
     ## Defining the ROIs main area
     #plt.clf()
      masks_pol.append(select_main_area(imgs[0][i]))
-
+     #break
 
 
 
@@ -144,6 +147,7 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs finding
      meds.append(med)
      rois.append(make_rois(imgs[0][i],med,args.n_roi,args.size_roi,args.distance,args.max_iter))
      imsave(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_mask_"+str(i)+".tiff",img_as_ubyte(np.array(med,dtype=bool)),check_contrast=False)
+     #break
 
 
 print(cl.Fore.BLUE+cl.Back.RED+" * ROIs filtering. Right-click on the ROIs you want to have removed. Enter to finish"  + cl.Style.RESET_ALL)
@@ -159,10 +163,11 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs filtering
     plt.tight_layout()
     plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_overviewROI_"+str(i)+".png")
     plt.clf()
+    #break
 
 
 
-print(" * Registering... This may take a while")
+print(" * Registering... This may take a while (go get yourself a coffee)")
 shifts = []
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images, registration
     shifts.append([])
@@ -173,6 +178,8 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, registration
             shifts[i].append(shiftt)
         else:
             shifts[i].append([0.,0.])
+
+    #break
             
 #print(np.array(shifts).shape)
 
@@ -198,7 +205,7 @@ rgb = np.zeros((len(imgs[0][0]),len(imgs[0][0][0]),3))
 for i in tqdm(range(len(imgs[0]))): # loop on sub-images
 
     if (args.sanity_registering):
-        rgb_out = np.zeros((len(imgs[t][i]),len(imgs[t][i][0]),3))
+        rgb_out = np.zeros((len(imgs[t][i]),len(imgs[t][i][0]),3),dtype=np.uint8)
         
     out_detail.write("\n## IMG_"+str(i)+"\n")
     out.write("## IMG_"+str(i)+"\n")
@@ -211,7 +218,7 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
         out_detail.write("### Registration " + str(shifts[i][t][0])+ " "+str(shifts[i][t][1])+"\n")
         curr_img = shift(imgs[t][i],shifts[i][t])
         if (args.sanity_registering and t<3):
-            rgb_out[:,:,t] = normalize(curr_img)
+            rgb_out[:,:,t] = normalize(curr_img)*255
         
         res = []
         popts = []
@@ -256,9 +263,12 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images
         popts = np.array(popts)
         out.write(" "+str(1/np.mean((popts[:,3]+popts[:,2])/(popts[:,3]-popts[:,2])))+" "+str(np.mean(popts[:,1]))+" "+str(len(res))+"\n")
     if (args.sanity_registering):
-        plt.imshow(rgb_out)
-        plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"registering_IMG"+str(i)+".png")
-
+        #print(rgb_out.shape,rgb_out.dtype)
+        #plt.imshow(rgb_out)
+        #plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+"registering_IMG"+str(i)+".png")
+        ski.io.imsave(folder+os.sep+"res"+os.sep+basename+os.sep+"registering_IMG"+str(i)+".png",rgb_out)
+        #plt.clf()
+    #break
 
                 
 

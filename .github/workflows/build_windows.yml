@@ -15,7 +15,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.13'
     
     - name: Install dependencies
       run: |
@@ -24,10 +24,10 @@ jobs:
     
     - name: Build Windows executable
       run: |
-        pyinstaller --onefile --console --name analyse_new.py
+        pyinstaller --onefile --console --name permeability analyse_new.py
     
     - name: Upload Windows executable
       uses: actions/upload-artifact@v4
       with:
-        name: label_sp-windows
+        name: permeability-windows
         path: dist/permeability.exe

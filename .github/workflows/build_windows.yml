@@ -3,7 +3,7 @@ name: Build Windows Executable
 on:
   workflow_dispatch:  # This allows manual triggering
   push:
-    branches: [ main ]
+    branches: [ "*" ]
 
 jobs:
   build:

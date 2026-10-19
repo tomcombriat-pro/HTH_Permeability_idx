@@ -2,7 +2,7 @@
 
 
 """
-Copyright: Combriat Thomas, 2026
+Copyright: Combriat. T, Eiken. A.W. , 2026
 Hybrid Technology Hub
 
 This script quantifies the permeability index from nd2 images

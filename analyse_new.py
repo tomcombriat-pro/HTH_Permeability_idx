@@ -35,6 +35,7 @@ from skimage.util import img_as_ubyte
 from src.LineUtils import *
 from src.ImUtils import *
 from src.FitUtils import *
+from src.ROIPairPicker import select_roi_pairs
 import skimage as ski
 
 def find_time(st):
@@ -73,8 +74,13 @@ parser.add_argument('-u', '--upsample', type=int, default=1,help="Upsample facto
 parser.add_argument('-w', '--width', type=int, default=50,help="Width of the line to find the profile")
 parser.add_argument('-x', '--extra_length', type=int, default=50,help="Line extra length beyond the ROIs")
 parser.add_argument('-sr', '--sanity_registering', type=bool, default=False,help="Whether to output, or not an RGB image showing the registration done")
+parser.add_argument('-a', '--auto_ROI', type=bool, default=False,help="Whether to let the program attempt to find ROIs by itself or not. If False (default) option --max_iter and --manual_filter have no effect")
+
+
 
 args = parser.parse_args()
+
+center_distance = args.distance + 2*args.size_roi
 
 
 print("--------------------\n  PERMEABILITY IDX  ")
@@ -123,32 +129,47 @@ for i in tqdm(range(len(ls_filtered))):  ## opening and storing all images
 print(cl.Back.GREEN+"Data Loaded!"+ cl.Style.RESET_ALL)
 
 
-masks_pol = []
+
 rois = []
 fig = plt.figure(figsize=(30,20))
-#print(" * Registering (this might take some time...)")
-print(cl.Fore.BLUE+cl.Back.RED+ " * Main area selection, draw a polygon to restrict the algorithm to this area. You can close the window without drawing anything. Esc to reset."+ cl.Style.RESET_ALL)
-for i in tqdm(range(len(imgs[0]))): # loop on sub-images, polygon drawing
-
-    ## Defining the ROIs main area
-    #plt.clf()
-     masks_pol.append(select_main_area(imgs[0][i]))
-     #break
 
 
+if (args.auto_ROI):
 
-meds = []
-print(" * Finding ROIs...")
-for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs finding
-     med = median(imgs[0][i]>threshold_otsu(imgs[0][i][masks_pol[i]]),disk(args.median_size))
-     for m in range(args.median-1):
-         med = median(med,disk(args.median_size))
-     med *= masks_pol[i]
-     meds.append(med)
-     rois.append(make_rois(imgs[0][i],med,args.n_roi,args.size_roi,args.distance,args.max_iter))
-     imsave(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_mask_"+str(i)+".tiff",img_as_ubyte(np.array(med,dtype=bool)),check_contrast=False)
-     #break
+    masks_pol = []
+    print(cl.Fore.BLUE+cl.Back.RED+ " * Main area selection, draw a polygon to restrict the algorithm to this area. You can close the window without drawing anything. Esc to reset."+ cl.Style.RESET_ALL)
+    for i in tqdm(range(len(imgs[0]))): # loop on sub-images, polygon drawing
 
+        ## Defining the ROIs main area
+        #plt.clf()
+         masks_pol.append(select_main_area(imgs[0][i]))
+         #break
+
+
+
+    meds = []
+    print(" * Finding ROIs...")
+    for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs finding
+         med = median(imgs[0][i]>threshold_otsu(imgs[0][i][masks_pol[i]]),disk(args.median_size))
+         for m in range(args.median-1):
+             med = median(med,disk(args.median_size))
+         med *= masks_pol[i]
+         meds.append(med)
+         rois.append(make_rois(imgs[0][i],med,args.n_roi,args.size_roi,args.distance,args.max_iter))
+         imsave(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_mask_"+str(i)+".tiff",img_as_ubyte(np.array(med,dtype=bool)),check_contrast=False)
+         #break
+
+
+else:
+    #### Manual ROI pair placement ####
+    print(cl.Fore.BLUE+cl.Back.RED+" * ROI placement. 1st click: INSIDE the vessel, 2nd click: OUTSIDE (on the ring around the 1st ROI). Enter to finish the image, right click / Backspace to undo."+ cl.Style.RESET_ALL)
+    for i in range(len(imgs[0])): # loop on sub-images
+        while True:
+            lab = select_roi_pairs(imgs[0][i],args.size_roi,center_distance,title="Sub-image "+str(i)+" | radius "+str(args.size_roi)+" px, center distance "+str(center_distance)+" px",max_pairs=args.n_roi)
+            if np.amax(lab) > 0:
+                break
+            print(cl.Fore.YELLOW+" No ROI pair placed, please place at least one pair."+cl.Style.RESET_ALL)
+        rois.append(lab)
 
 print(cl.Fore.BLUE+cl.Back.RED+" * ROIs filtering. Right-click on the ROIs you want to have removed. Enter to finish"  + cl.Style.RESET_ALL)
 
@@ -163,7 +184,8 @@ for i in tqdm(range(len(imgs[0]))): # loop on sub-images, ROIs filtering
     plt.tight_layout()
     plt.savefig(folder+os.sep+"res"+os.sep+basename+os.sep+basename+"_overviewROI_"+str(i)+".png")
     plt.clf()
-    #break
+
+
 
 
 
